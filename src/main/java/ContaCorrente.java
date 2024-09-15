@@ -12,7 +12,10 @@ public class ContaCorrente extends Conta {
 
     @Override
     public void setLimite(double limite) {
-        if (limite >= -100)
+        if (limite >= -100) {
             super.limite = limite;
+        }else {
+            throw new IllegalArgumentException("Limite inválido");
+        }
     }
 }

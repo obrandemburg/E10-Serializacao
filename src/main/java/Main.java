@@ -1,8 +1,6 @@
+import java.io.IOException;
 import java.util.Date;
 import java.util.Scanner;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 
 public class Main {
     public static void main(String[] args) {
@@ -11,33 +9,51 @@ public class Main {
 
         Cliente joao = new PessoaFisica("João", "Av. Antonio Carlos, 6627",
                                         new Date(), "111.111.111-11", 36, 'm');
-        Cliente matheus = new PessoaFisica("Matheus", "Minha casa",
-                                        new Date(), "222.222.222-22", 17, 'm');
 
-        Cliente lojinha = new PessoaJuridica("Loja R$1,99", "Av. Afonso Pena, 3000",
-                                        new Date(), "000.00000.0000/0001", 25, "Comércio");
+        Cliente matheus = new PessoaFisica("Matheus", "Av. Antonio Carlos, 6627",
+                new Date(), "111.111.111-11", 17, 'm');
+
+        Cliente alex = new PessoaFisica("Alex", "Av. Antonio Carlos, 6627",
+                new Date(), "111.111.111-11", 36, 'm');
 
 
-        Conta cc = new ContaCorrente(1234, joao, 0, 1500);
+        Conta contaJoao = new ContaCorrente(1234, joao, 100, 50);
 
-        Conta contaMatheus = new ContaUniversitaria(196, matheus, 900.00, 1000);
+        Conta contaMatheus = new ContaCorrente(5678, matheus, 1000, 1500);
 
-        Conta cp = new ContaPoupanca(12121, lojinha, 10000, 1500);
+        //Questão 1
 
-        boolean correto = false;
-        while(!correto) {
-            System.out.println("Digite um valor para deposito");
-            double valor = entrada.nextDouble();
-
-            try {
-                cc.depositar(valor);
-                correto = true;
-            } catch (ArithmeticException exception) {
-                System.out.println("Erro na realização do depósito");
-                System.out.println(exception.getMessage());
-            }
+        try {
+            contaMatheus.salvarConta();
+        }catch(IOException e){
+            System.out.println("Erro ao salvar conta: "+ e.getMessage());
         }
 
+        try {
+            contaJoao.salvarConta();
+        }catch(IOException e){
+            System.out.println("Erro ao salvar conta: "+ e.getMessage());
+        }
+
+        //Questão 2
+
+        try {
+            Conta contaLida1 = Conta.lerConta(1, 1234);
+            System.out.println(contaLida1.toString());
+        }catch (IOException e){
+            System.out.println("Erro ao ler conta" + e.getMessage());
+        }catch (ClassNotFoundException e){
+            System.out.println("Erro. não foi possível achar a classe dessa conta" + e.getMessage());
+        }
+
+        try {
+            Conta contaLida2 = Conta.lerConta(1, 5678);
+            System.out.println(contaLida2.toString());
+        }catch (IOException e){
+            System.out.println("Erro ao ler conta" + e.getMessage());
+        }catch (ClassNotFoundException e){
+            System.out.println("Erro. não foi possível achar a classe dessa conta" + e.getMessage());
+        }
 
 
 

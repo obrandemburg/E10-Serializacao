@@ -18,7 +18,7 @@ public abstract class Cliente implements ITaxas, Serializable {
     public abstract boolean autenticar(String chave);
 
     public void imprimir() {
-        System.out.println("CLIENTE INVÁLIDO!");
+        System.out.println("Cliente inválido");
     }
 
 

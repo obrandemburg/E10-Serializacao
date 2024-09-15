@@ -1,16 +1,12 @@
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.io.IOException;
-
 
 public abstract class Conta implements ITaxas, Serializable {
 
     private int numero;
-
+    private final int agencia = 1;
     private Cliente dono;
 
     private double saldo;
@@ -25,38 +21,81 @@ public abstract class Conta implements ITaxas, Serializable {
         this.numero = numero;
         this.dono = dono;
         this.saldo = saldo;
-        this.limite = limite;
+        setLimite(limite);
 
         this.operacoes = new ArrayList<>();
 
         Conta.totalContas++;
     }
+    /*Através dos mecanismos de serialização,
+    implemente uma rotina para salvar uma determinada conta em arquivo.
+    Esse método deverá ser implementado dentro da própria classe conta.
+     O arquivo a ser salvo deverá ser nomeado com o número da agencia seguido do numero da conta que está sendo salva (AGENCIA-CONTA.ser).*/
 
-    public boolean sacar(double valor) {
-        if (valor >= 0 && valor <= this.limite) {
+    void salvarConta()throws IOException {
+        String nomeArquivo = this.agencia + "-" + this.numero + ".ser";
+
+        FileOutputStream arquivoSaida = new FileOutputStream(nomeArquivo);
+        ObjectOutputStream objetoSerizado = new ObjectOutputStream(arquivoSaida);
+        objetoSerizado.writeObject(this);
+
+        objetoSerizado.close();
+        arquivoSaida.close();
+    }
+    /*Utilizando os mesmos mecanismos de serialização, implemente uma rotina para carregar os dados de uma determinada conta.
+    Esse método deverá receber dois parâmetros de entrada, o número da agência e número da conta, que serão utilizados para localizar o arquivo a ser aberto.
+    Faça o devido tratamento caso o arquivo não exista.*/
+    public static Conta lerConta(int agencia, int numeroConta) throws IOException, ClassNotFoundException{
+        String nomeArquivo = agencia + "-" + numeroConta + ".ser";
+
+        FileInputStream arquivoLido = new FileInputStream(nomeArquivo);
+        ObjectInputStream objetoLido = new ObjectInputStream(arquivoLido);
+
+        Conta contaLida = (Conta) objetoLido.readObject();
+
+        objetoLido.close();
+        arquivoLido.close();
+
+        return contaLida;
+    }
+    public void sacar(double valor) throws ValorNegativoException, SemLimiteException, ValorInvalidoException{
+        if (valor < 0) {
+
+            throw new ValorNegativoException();
+        } else if (valor > this.limite) {
+
+            throw new SemLimiteException();
+        } else if (valor > this.saldo) {
+
+            throw new ValorInvalidoException();
+        } else{
+
             this.saldo -= valor;
             this.operacoes.add(new OperacaoSaque(valor));
-            return true;
         }
-
-        return false;
     }
 
-    public void depositar(double valor) throws ArithmeticException {
+    public void depositar(double valor) throws ValorNegativoException {
         if (valor < 0)
-            throw new ArithmeticException("Erro. Valor negativo depositado.");
+            throw new ValorNegativoException();
 
         this.saldo += valor;
         this.operacoes.add(new OperacaoDeposito(valor));
     }
 
-    public boolean transferir(Conta destino, double valor) {
-        boolean valorSacado = this.sacar(valor);
-        if (valorSacado) {
-            destino.depositar(valor);
-            return true;
+    public void transferir(Conta destino, double valor) {
+
+        try{
+            this.sacar(valor);
+            destino.saldo += valor;
+
+        }catch(ValorNegativoException e){
+            System.out.println("Erro no saque\n" + e.getMessage());
+        }catch(SemLimiteException e){
+            System.out.println("Erro no saque\n" + e.getMessage());
+        }catch(ValorInvalidoException e){
+            System.out.println("Erro no saque\n" + e.getMessage());
         }
-        return false;
     }
 
     @Override
@@ -108,13 +147,6 @@ public abstract class Conta implements ITaxas, Serializable {
         System.out.printf("Total:\t%.2f\n", totalTaxas);
     }
 
-    //com o número da agencia seguido do numero da conta que está sendo salva (AGENCIA-CONTA.ser).
-    void salvarConta(Conta conta) {
-        String nomeArquivo = conta.agencia + conta.numero;
-        FileOutputStream arquivoConta = new FileOutputStream(nomeArquivo);
-        ObjectOutputStream objetoQueVaiEntrarNoArquivo = new ObjectOutputStream(arquivoConta);
-    }
-
     public int getNumero() {
         return numero;
     }
@@ -143,5 +175,5 @@ public abstract class Conta implements ITaxas, Serializable {
         this.dono = dono;
     }
 
-    public abstract void setLimite(double limite);
+    public abstract void setLimite(double limite) throws IllegalArgumentException;
 }
